@@ -16,8 +16,13 @@
 
 package com.android.wallpaper.picker.di.modules
 
+import android.content.Context
+import com.android.customization.model.font.FontManager
+import com.android.customization.model.font.data.repository.FontRepository
+import com.android.customization.model.font.domain.interactor.FontInteractor
 import com.android.customization.model.grid.DefaultShapeGridManager
 import com.android.customization.model.grid.ShapeGridManager
+import com.android.customization.model.theme.OverlayManagerCompat
 import com.android.customization.module.logging.AppSessionId
 import com.android.customization.module.logging.AppSessionIdImpl
 import com.android.customization.module.logging.SysUiStatsLoggerFactory
@@ -26,7 +31,9 @@ import com.android.customization.picker.mode.shared.util.DarkModeUtil
 import com.android.customization.picker.mode.shared.util.DarkModeUtilImpl
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -47,4 +54,24 @@ abstract class ThemePickerSharedAppModule {
     abstract fun bindSysUiStatsLoggerFactory(
         impl: SysUiStatsLoggerFactoryImpl
     ): SysUiStatsLoggerFactory
+
+    companion object {
+        @Provides
+        @Singleton
+        fun provideFontManager(@ApplicationContext context: Context): FontManager {
+            return FontManager.getInstance(context, OverlayManagerCompat(context))
+        }
+
+        @Provides
+        @Singleton
+        fun provideFontRepository(fontManager: FontManager): FontRepository {
+            return FontRepository(fontManager)
+        }
+
+        @Provides
+        @Singleton
+        fun provideFontInteractor(fontRepository: FontRepository): FontInteractor {
+            return FontInteractor(fontRepository)
+        }
+    }
 }
