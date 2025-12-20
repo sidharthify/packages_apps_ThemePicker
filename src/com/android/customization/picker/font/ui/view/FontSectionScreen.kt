@@ -1,6 +1,8 @@
 package com.android.customization.picker.font.ui.view
 
 import android.os.Build
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -47,13 +49,14 @@ fun FontSectionScreen(
                 .wrapContentHeight(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // abc/abc/123
+            // ABC/123 preview
             val previewFont = remember(selectedOption) {
                 selectedOption?.let {
                     FontFamily(Typeface(it.headlineFont))
                 } ?: FontFamily.Default
             }
 
+            // Preview Box
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -103,6 +106,7 @@ fun FontSectionScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FontOptionItem(
     option: FontOption,
@@ -155,13 +159,16 @@ fun FontOptionItem(
         
         Spacer(modifier = Modifier.height(8.dp))
         
+        // Scroll on longer strings
         Text(
             text = option.title, 
             style = MaterialTheme.typography.labelMedium, 
             color = MaterialTheme.colorScheme.onSurfaceVariant, 
             maxLines = 1,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .basicMarquee() 
         )
     }
 }
