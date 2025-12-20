@@ -9,7 +9,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.FrameLayout
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -20,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider
 import com.android.customization.picker.font.ui.viewmodel.FontPickerViewModel
@@ -34,20 +39,25 @@ class FontPickerBottomSheet(
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = super.onCreateDialog(savedInstanceState) as BottomSheetDialog
 
-        dialog.window?.let { window ->
-            window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-            window.navigationBarColor = AndroidColor.TRANSPARENT
-        }
-
         dialog.setOnShowListener {
+            val window = dialog.window
+            if (window != null) {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+                window.setDimAmount(0f)
+
+                // Edge-to-edge
+                WindowCompat.setDecorFitsSystemWindows(window, false)
+                window.navigationBarColor = AndroidColor.TRANSPARENT
+            }
+
             val bottomSheet = dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
             if (bottomSheet != null) {
+                bottomSheet.setBackgroundColor(AndroidColor.TRANSPARENT)
+                
                 BottomSheetBehavior.from(bottomSheet).apply {
                     state = BottomSheetBehavior.STATE_EXPANDED
                     skipCollapsed = true
-                    isFitToContents = true 
+                    isFitToContents = true
                 }
             }
         }
@@ -60,10 +70,9 @@ class FontPickerBottomSheet(
         savedInstanceState: Bundle?
     ): View {
         return ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 val context = LocalContext.current
-
                 val uiMode = context.applicationContext.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
                 val isSystemDark = uiMode == Configuration.UI_MODE_NIGHT_YES
 
@@ -73,12 +82,18 @@ class FontPickerBottomSheet(
                     dynamicLightColorScheme(context)
                 }
 
-                val bgColor = if (isSystemDark) Color(0xFF1C1C1C) else Color.White
+                val bgColor = if (isSystemDark) Color(0xFF1C1C1C) else Color(0xFFF0F0F0)
 
                 MaterialTheme(colorScheme = colorScheme) {
                     Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = bgColor 
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .navigationBarsPadding()
+                            .padding(bottom = 16.dp),
+                        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                        color = bgColor,
+                        tonalElevation = 8.dp
                     ) {
                         val viewModel = ViewModelProvider(
                             this@FontPickerBottomSheet,
@@ -92,7 +107,11 @@ class FontPickerBottomSheet(
                             }
                         }
 
-                        FontSectionScreen(viewModel = viewModel)
+                        // Padding
+                        FontSectionScreen(
+                            viewModel = viewModel,
+                            modifier = Modifier.padding(vertical = 24.dp)
+                        )
                     }
                 }
             }
